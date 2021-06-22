@@ -1,5 +1,13 @@
-const cart = document.getElementById('cart');
-const catalog = document.getElementById('catalog');
+const cart = document.getElementById('cart'); //Вывод кол-во товаров и стоимости
+const catalog = document.getElementById('catalog'); //Вывод товаров на страницу
+const cartWindow = document.getElementById('cart_window'); //Всплывающее окно корзины
+const productBody = document.getElementById('products__body'); //Вывод товаров добавленных в корзину
+const btnClose = document.getElementById('btn-close'); //Кнопка закрытия высплывающего окна
+const btnDelete = document.getElementById('btn-delete'); //Кнопка удаления товара из корзины
+const btnNext = document.getElementById('btn-next'); //Кнопка переключения секций
+const btnBack = document.getElementById('btn-back'); //Кнопка переключения секций
+
+let defaultSetcion = 1;
 
 let prodArray = []; // Массив товаров на странице
 let CartArray = []; // Массив корзины
@@ -60,6 +68,11 @@ function Cart() {
         cart.insertAdjacentHTML('beforeend', '<p>В вашей корзине ' + CartArray.length + ' товаров на сумму ' + sumcart + '</p>');
 
     }
+
+    productBody.textContent = '';
+    CartArray.forEach(function (good) {
+        cartOutput(good);
+    })
 }
 
 function cardReader() {
@@ -73,7 +86,8 @@ function addToCart(id) {
 
         return good.id === id;
     });
-    CartArray.push(new GoodCart(good))
+    CartArray.push(new GoodCart(good));
+
 }
 
 function cardOutput({ img, title, desc, price, id }) {
@@ -88,6 +102,40 @@ function cardOutput({ img, title, desc, price, id }) {
 
     catalog.insertAdjacentHTML('beforeend', item);
 }
+function cartOutput({ title, price, id }) {
+    let product = `
+    <div class="body_items">
+        <h3 class="items__title">${title}</h3>
+        <p class="items__price">Цена: ${price}</p>
+        <button class="items__btn" data-id="${id}">Удалить</button>
+    </div>
+    `;
+
+    productBody.insertAdjacentHTML('beforeend', product);
+}
+function closeCartWindow(e) {
+    if (e.type === 'click' || e.key == 'Escape') {
+        cartWindow.style.display = 'none';
+    }
+}
+function deleteProduct(id) {
+    const dataID = CartArray.findIndex(function (good) {
+        return good.id === id;
+    });
+    CartArray.splice(dataID, 1);
+}
+
+function nextSection() {
+    document.querySelector('#sct-' + defaultSetcion).style.display = "none";
+    defaultSetcion = defaultSetcion < 3 ? defaultSetcion + 1 : 1;
+    document.querySelector('#sct-' + defaultSetcion).style.display = "block";
+}
+function backSection() {
+    document.querySelector('#sct-' + defaultSetcion).style.display = "none";
+    defaultSetcion = defaultSetcion > 1 ? defaultSetcion - 1 : 1;
+    document.querySelector('#sct-' + defaultSetcion).style.display = "block";
+}
+
 
 catalog.addEventListener('click', function (e) {
     if (e.target.tagName === 'BUTTON') {
@@ -95,7 +143,22 @@ catalog.addEventListener('click', function (e) {
         Cart();
     }
 })
+cart.addEventListener('click', function (e) {
+    cartWindow.style.display = 'block';
+});
+
+productBody.addEventListener('click', function (e) {
+    if (e.target.tagName == 'BUTTON') {
+        deleteProduct(Number(e.target.getAttribute('data-id')));
+        Cart();
+    }
+})
+btnClose.addEventListener('click', closeCartWindow);
+document.addEventListener('keydown', closeCartWindow);
+btnNext.addEventListener('click', nextSection);
+btnBack.addEventListener('click', backSection);
 
 fetchGoods();
 cardReader();
 Cart();
+
